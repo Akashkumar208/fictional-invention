@@ -1,171 +1,58 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import streamlit as st
+from transformers import pipeline
 
-# C extensions
-*.so
+# Page Configuration
+st.set_page_config(page_title="AI Study Planner", page_icon="📘")
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# Add Logo
+st.image("logo bud.jpg", width=100)
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Title and Introduction
+st.title("AI Study Planner")
+st.write("Welcome to your AI-powered study planner! This tool helps you create a personalized study schedule tailored to your goals and available time.")
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# Load Hugging Face Models
+st.write("Loading AI models...")
+if 'study_model' not in st.session_state:
+    st.session_state['study_model'] = pipeline("text-generation", model="gpt2")
+if 'chat_model' not in st.session_state:
+    st.session_state['chat_model'] = pipeline("text2text-generation", model="t5-small")
+st.success("Models loaded successfully!")
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+# User Input for Study Plan
+st.header("Create Your Study Plan")
+subjects = st.text_input("Enter the subjects you want to study (comma-separated):", placeholder="e.g., Math, Science, History,programming language")
+goal = st.text_area("What is your study goal?", placeholder="e.g., Prepare for finals, learn a new topic, etc.")
+available_hours = st.slider("How many hours can you study per day?", 1, 12, 4)
 
-# Translations
-*.mo
-*.pot
+generate_plan = st.button("Generate Study Plan")
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# Generate Study Plan
+if generate_plan:
+    if subjects and goal:
+        input_text = f"Create a study plan for the subjects: {subjects}. The goal is: {goal}. Available hours per day: {available_hours}."
+        with st.spinner("Generating your study plan..."):
+            study_plan = st.session_state['study_model'](input_text, max_length=200, num_return_sequences=1)[0]['generated_text']
+        st.subheader("Your Personalized Study Plan")
+        st.write(study_plan)
+    else:
+        st.warning("Please fill in all the fields to generate your study plan.")
 
-# Flask stuff:
-instance/
-.webassets-cache
+# AI Chat Box
+st.header("AI Chat Bot")
+st.write("Ask any question and get instant answers from the AI bot.")
+user_question = st.text_input("Enter your question:", placeholder="e.g., What is the best way to study math?")
+ask_bot = st.button("Ask AI Bot")
 
-# Scrapy stuff:
-.scrapy
+if ask_bot:
+    if user_question:
+        with st.spinner("AI is thinking..."):
+            bot_response = st.session_state['chat_model'](user_question, max_length=100, num_return_sequences=1)[0]['generated_text']
+        st.subheader("AI Bot Response")
+        st.write(bot_response)
+    else:
+        st.warning("Please enter a question to ask the AI bot.")
 
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
-.pdm.toml
-.pdm-python
-.pdm-build/
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
-# PyPI configuration file
-.pypirc
+# Footer
+st.write("---")
+st.write("Developed using Streamlit and Hugging Face Transformers.")
